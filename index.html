@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f0f0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>GestCarbu</title>
+<style>
+:root {
+  --coal:#0f0f0f;--dark:#181818;--panel:#212121;--border:#2e2e2e;
+  --accent:#f97316;--accent-dim:rgba(249,115,22,0.12);--gold:#fbbf24;
+  --text:#ebebeb;--muted:#777;--success:#22c55e;--danger:#ef4444;
+  --nav-h:72px;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;background:var(--coal);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:16px;}
+.app-shell{display:flex;flex-direction:column;height:100%;height:100dvh;}
+.topbar{flex-shrink:0;background:var(--dark);border-bottom:1px solid var(--border);padding:calc(var(--safe-top) + 14px) 20px 14px;display:flex;align-items:center;justify-content:space-between;z-index:10;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:38px;height:38px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo h1{font-weight:800;font-size:1.35rem;letter-spacing:-0.03em;color:#fff;}
+.logo h1 span{color:var(--accent);}
+.topbar-date{font-size:0.75rem;color:var(--muted);text-align:right;line-height:1.4;}
+.main-content{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.main-content::-webkit-scrollbar{display:none;}
+.screen{display:none;padding:16px 16px calc(var(--nav-h) + 24px + var(--safe-bot));}
+.screen.active{display:block;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}.stats-row .stat-montant-full{grid-column:1/-1;}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px 10px;position:relative;overflow:hidden;}
+.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent);}
+.stat-lbl{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
+.stat-val{font-weight:800;font-size:1.5rem;color:#fff;line-height:1;}
+.stat-val small{font-size:0.68rem;color:var(--muted);font-weight:400;}
+.section-title{font-weight:700;font-size:1rem;color:#fff;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.form-card{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:16px;}
+.form-group{margin-bottom:16px;}
+.form-group:last-child{margin-bottom:0;}
+.form-label{display:block;font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;font-weight:600;margin-bottom:8px;}
+input[type=text],input[type=number],input[type=date],select,textarea{width:100%;background:var(--dark);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:inherit;font-size:1rem;padding:14px 16px;outline:none;transition:border-color 0.2s;-webkit-appearance:none;appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+textarea{resize:none;min-height:100px;}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23777' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center;padding-right:40px;}
+select option{background:#1a1a1a;}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(0.5);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:16px 20px;border-radius:14px;border:none;font-family:inherit;font-size:0.95rem;font-weight:600;cursor:pointer;transition:opacity 0.15s,transform 0.1s;width:100%;min-height:52px;}
+.btn:active{transform:scale(0.97);opacity:0.85;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-secondary{background:var(--panel);color:var(--text);border:1.5px solid var(--border);}
+.btn-success{background:rgba(34,197,94,0.12);color:var(--success);border:1.5px solid rgba(34,197,94,0.3);}
+.btn-sm{padding:10px 14px;min-height:38px;font-size:0.8rem;border-radius:10px;width:auto;}
+.btn-icon{width:52px;padding:0;flex-shrink:0;}
+.btn-row{display:flex;gap:10px;margin-top:18px;}
+.btn-row .btn{flex:1;}
+.delivery-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:10px;position:relative;overflow:hidden;}
+.delivery-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--accent);border-radius:4px 0 0 4px;}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;padding-left:10px;}
+.card-zone{font-weight:600;font-size:0.92rem;color:var(--text);}
+.card-date{font-size:0.74rem;color:var(--muted);margin-top:3px;}
+.card-right{display:flex;align-items:center;gap:8px;}
+.card-qty{font-weight:800;font-size:1.1rem;color:var(--gold);white-space:nowrap;}
+.card-bottom{display:flex;justify-content:space-between;align-items:center;padding-left:10px;gap:10px;}
+.card-salle{font-size:0.78rem;color:var(--accent);background:var(--accent-dim);padding:4px 10px;border-radius:20px;display:inline-block;flex-shrink:0;}
+.card-desc{font-size:0.76rem;color:var(--muted);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;text-align:right;}
+.delete-btn{background:rgba(239,68,68,0.08);border:none;color:var(--danger);width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;flex-shrink:0;}
+.delete-btn:active{background:rgba(239,68,68,0.22);}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);}
+.empty-icon{font-size:2.5rem;margin-bottom:10px;}
+.empty p{font-size:0.88rem;}
+.filter-bar{display:flex;gap:10px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+.filter-bar::-webkit-scrollbar{display:none;}
+.filter-bar input,.filter-bar select{font-size:0.88rem;padding:11px 14px;}
+.bilan-select-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.summary-box{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;}
+.s-label{font-size:0.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;}
+.s-val{font-weight:800;font-size:1.3rem;color:#fff;}
+.s-val.orange{color:var(--gold);}
+.bottom-nav{flex-shrink:0;background:var(--dark);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-bot);z-index:20;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 8px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:0.62rem;font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:0.04em;min-height:var(--nav-h);}
+.nav-btn.active{color:var(--accent);}
+.nav-icon-wrap{width:48px;height:48px;background:var(--panel);border-radius:14px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;margin-bottom:2px;font-size:21px;}
+.nav-btn.active .nav-icon-wrap{background:var(--accent);box-shadow:0 4px 16px rgba(249,115,22,0.35);}
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-bot) + 14px);left:50%;transform:translateX(-50%) translateY(20px);background:#1e1e1e;border:1px solid var(--border);color:var(--text);padding:12px 22px;border-radius:100px;font-size:0.88rem;font-weight:600;z-index:999;opacity:0;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap;pointer-events:none;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.montant-box{background:linear-gradient(135deg,rgba(251,191,36,0.12),rgba(249,115,22,0.08));border:1.5px solid rgba(251,191,36,0.3);border-radius:14px;padding:16px 18px;margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.montant-box .m-label{font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.07em;font-weight:600;margin-bottom:4px;}
+.montant-box .m-val{font-weight:800;font-size:1.5rem;color:var(--gold);}
+.montant-box .m-val small{font-size:0.75rem;font-weight:400;color:var(--muted);}
+.prix-badge{background:var(--accent-dim);border:1px solid rgba(249,115,22,0.25);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--accent);font-weight:600;cursor:pointer;white-space:nowrap;}
+.prix-badge:active{opacity:0.7;}
+.card-montant{font-size:0.78rem;color:var(--gold);font-weight:700;background:rgba(251,191,36,0.1);padding:3px 8px;border-radius:8px;white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-icon">⛽</div>
+      <h1>Gest<span>Carbu</span></h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="prix-badge" onclick="ouvrirPrix()">⚙️ <span id="prix-badge-txt">Prix/L</span></div>
+      <div class="topbar-date" id="top-date"></div>
+    </div>
+  </header>
+
+  <!-- MODAL PRIX -->
+  <div id="modal-prix" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;align-items:center;justify-content:center;padding:24px;">
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:28px;width:100%;max-width:340px;">
+      <div style="font-weight:700;font-size:1.1rem;margin-bottom:6px;">⚙️ Prix du carburant</div>
+      <div style="font-size:0.82rem;color:var(--muted);margin-bottom:20px;">Ce prix sera utilisé pour calculer automatiquement le montant de chaque livraison.</div>
+      <label class="form-label">Prix par litre</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+        <input type="number" id="input-prix" placeholder="Ex : 850" min="0" step="1" inputmode="decimal" style="flex:1;">
+        <span style="color:var(--muted);font-weight:600;white-space:nowrap;">FCFA / L</span>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary" style="flex:1;" onclick="fermerPrix()">Annuler</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="sauverPrix()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <main class="main-content">
+    <!-- SAISIE -->
+    <div class="screen active" id="screen-saisie">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-lbl">Total</div><div class="stat-val" id="stat-total">0</div></div>
+        <div class="stat-card"><div class="stat-lbl">Ce mois</div><div class="stat-val" id="stat-qty">0<small>L</small></div></div>
+        <div class="stat-card"><div class="stat-lbl">Zones</div><div class="stat-val" id="stat-zones">0</div></div>
+      </div>
+      <div id="stat-montant-card" style="display:none;background:var(--panel);border:1px solid rgba(251,191,36,0.3);border-radius:14px;padding:14px 16px;margin-bottom:10px;position:relative;overflow:hidden;" class="stat-montant-full">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--gold);"></div>
+        <div class="stat-lbl">💰 Montant total ce mois</div>
+        <div class="stat-val" id="stat-montant" style="color:var(--gold);">—</div>
+      </div>
+      <div class="section-title">✏️ Nouvelle livraison</div>
+      <div class="form-card">
+        <div class="form-row">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">📅 Date</label>
+            <input type="date" id="f-date">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">⚡ Quantité (L)</label>
+            <input type="number" id="f-quantite" placeholder="500" min="0" step="0.5" inputmode="decimal" oninput="calcMontant()">
+          </div>
+        </div>
+        <div id="montant-preview" style="display:none;" class="montant-box">
+          <div>
+            <div class="m-label">Montant calculé</div>
+            <div class="m-val" id="montant-val">0 <small>FCFA</small></div>
+          </div>
+          <div style="text-align:right;">
+            <div class="m-label">Prix unitaire</div>
+            <div style="font-weight:600;color:var(--muted);font-size:0.9rem;" id="prix-unit-display">—</div>
+          </div>
+        </div>
+        <div style="height:16px"></div>
+        <div class="form-group">
+          <label class="form-label">📍 Zone de livraison</label>
+          <input type="text" id="f-zone" placeholder="Ex : Zone Industrielle Nord" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">🏠 Salle / Bâtiment</label>
+          <input type="text" id="f-salle" placeholder="Ex : Salle B2 / Dépôt 3" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label">📝 Observations</label>
+          <textarea id="f-description" placeholder="Remarques, état du matériel..."></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary btn-icon" onclick="resetForm()" title="Réinitialiser">↺</button>
+          <button class="btn btn-primary" onclick="addLivraison()">➕ Enregistrer</button>
+        </div>
+      </div>
+      <div class="section-title">
+        📅 Aujourd'hui
+        <button class="btn btn-success btn-sm" onclick="exportDayPDF()">⬇️ PDF</button>
+      </div>
+      <div id="today-list"><div class="empty"><div class="empty-icon">📦</div><p>Aucune livraison aujourd'hui</p></div></div>
+    </div>
+
+    <!-- HISTORIQUE -->
+    <div class="screen" id="screen-historique">
+      <div class="section-title">📋 Historique</div>
+      <div class="filter-bar">
+        <input type="date" id="filter-date" oninput="renderHistorique()">
+        <input type="text" id="filter-zone" placeholder="🔍 Zone / salle..." oninput="renderHistorique()">
+        <button class="btn btn-secondary btn-sm" onclick="clearFilters()">✕</button>
+      </div>
+      <div id="hist-count" style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;"></div>
+      <div id="hist-list"><div class="empty"><div class="empty-icon">🗂️</div><p>Aucune livraison enregistrée</p></div></div>
+    </div>
+
+    <!-- BILAN -->
+    <div class="screen" id="screen-bilan">
+      <div class="section-title">📊 Bilan mensuel</div>
+      <div class="form-card">
+        <div class="bilan-select-row">
+          <div>
+            <label class="form-label">Mois</label>
+            <select id="bilan-month">
+              <option value="0">Janvier</option><option value="1">Février</option><option value="2">Mars</option>
+              <option value="3">Avril</option><option value="4">Mai</option><option value="5">Juin</option>
+              <option value="6">Juillet</option><option value="7">Août</option><option value="8">Septembre</option>
+              <option value="9">Octobre</option><option value="10">Novembre</option><option value="11">Décembre</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Année</label>
+            <input type="number" id="bilan-year" value="2025" min="2020" max="2099" inputmode="numeric">
+          </div>
+        </div>
+        <div class="btn-row" style="margin-top:14px;">
+          <button class="btn btn-secondary" onclick="renderBilan()">🔍 Aperçu</button>
+          <button class="btn btn-primary" onclick="exportBilanPDF()">⬇️ PDF Bilan</button>
+        </div>
+      </div>
+      <div id="bilan-summary" style="display:none;">
+        <div class="summary-box" id="bilan-totaux"></div>
+        <div class="section-title" id="bilan-list-title">Détail</div>
+        <div id="bilan-list"></div>
+      </div>
+      <div id="bilan-empty" class="empty" style="display:none;"><div class="empty-icon">📊</div><p>Aucune livraison ce mois</p></div>
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" id="nav-saisie" onclick="switchScreen('saisie')">
+      <div class="nav-icon-wrap" id="wrap-saisie">✏️</div><span>Saisie</span>
+    </button>
+    <button class="nav-btn" id="nav-historique" onclick="switchScreen('historique')">
+      <div class="nav-icon-wrap" id="wrap-historique">📋</div><span>Historique</span>
+    </button>
+    <button class="nav-btn" id="nav-bilan" onclick="switchScreen('bilan')">
+      <div class="nav-icon-wrap" id="wrap-bilan">📊</div><span>Bilan</span>
+    </button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════
+// MOTEUR PDF MINIMALISTE — 100% HORS LIGNE
+// ══════════════════════════════════════════════════
+const MiniPDF = {
+  // Encode string en PDF (Latin-1 basique)
+  str(s){ return s==null?'':String(s).replace(/[^\x00-\xFF]/g,c=>'?'); },
+
+  create(title){
+    const o={
+      title, objs:[], pages:[], fonts:{},
+      W:595.28, H:841.89, // A4 en points
+      margin:40,
+    };
+    return o;
+  },
+
+  // Génère le PDF binaire et déclenche le téléchargement
+  download(doc, filename){
+    const bytes = this._build(doc);
+    const blob = new Blob([bytes], {type:'application/pdf'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download=filename; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  },
+
+  _esc(s){ return this.str(s).replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)'); },
+
+  _build(doc){
+    // On construit un PDF from scratch
+    const W=doc.W, H=doc.H;
+    let out=[], offsets=[];
+    let objCount=0;
+
+    function addObj(content){
+      objCount++;
+      offsets.push(null); // sera rempli
+      out.push({id:objCount, content});
+      return objCount;
+    }
+
+    // Catalog + Pages (placeholders, on les finira)
+    const catalogId=1, pagesId=2;
+    objCount=2; // réserver 1 et 2
+
+    // Font Helvetica
+    const fontId=3;
+    objCount=3;
+
+    // Construire les pages
+    const pageIds=[];
+    for(let p=0;p<doc.pages.length;p++){
+      const pg=doc.pages[p];
+      const streamId=objCount+1+p*2;
+      const pageId=objCount+2+p*2;
+      pageIds.push({streamId,pageId});
+    }
+
+    // Assembler le PDF texte
+    let pdf='%PDF-1.4\n';
+    const xref={};
+
+    function writeObj(id, content){
+      xref[id]=pdf.length;
+      pdf+=`${id} 0 obj\n${content}\nendobj\n`;
+    }
+
+    // Font
+    writeObj(3, `<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /Helvetica\n/Encoding /WinAnsiEncoding\n>>`);
+    writeObj(4, `<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /Helvetica-Bold\n/Encoding /WinAnsiEncoding\n>>`);
+
+    let nextId=5;
+    const builtPageIds=[];
+
+    for(let p=0;p<doc.pages.length;p++){
+      const pg=doc.pages[p];
+      // Construire le contenu de la page
+      let cs='';
+      // Fond blanc
+      cs+=`1 1 1 rg\n0 0 ${W} ${H} re f\n`;
+
+      for(const cmd of pg.cmds){
+        if(cmd.type==='rect'){
+          const {x,y,w,h,r,g,b,stroke}=cmd;
+          cs+=`${r/255} ${g/255} ${b/255} ${stroke?'RG':'rg'}\n`;
+          if(!stroke) cs+=`${x} ${H-y-h} ${w} ${h} re f\n`;
+          else cs+=`${x} ${H-y-h} ${w} ${h} re S\n`;
+        } else if(cmd.type==='line'){
+          const{x1,y1,x2,y2,r,g,b,lw}=cmd;
+          cs+=`${r/255} ${g/255} ${b/255} RG\n${lw} w\n${x1} ${H-y1} m ${x2} ${H-y2} l S\n`;
+        } else if(cmd.type==='text'){
+          const{x,y,text,size,bold,r,g,b,align}=cmd;
+          const fontRef=bold?'/F2':'/F1';
+          let tx=x;
+          if(align==='center'||align==='right'){
+            // approximation largeur : size*0.5 par char
+            const w2=text.length*size*0.52*(bold?0.58:0.52);
+            if(align==='center') tx=x-w2/2;
+            else tx=x-w2;
+          }
+          cs+=`${r/255} ${g/255} ${b/255} rg\nBT\n${fontRef} ${size} Tf\n${tx} ${H-y} Td\n(${MiniPDF._esc(text)}) Tj\nET\n`;
+        } else if(cmd.type==='multitext'){
+          const{x,y,lines,size,bold,r,g,b,lineH}=cmd;
+          const fontRef=bold?'/F2':'/F1';
+          cs+=`${r/255} ${g/255} ${b/255} rg\nBT\n${fontRef} ${size} Tf\n`;
+          for(let i=0;i<lines.length;i++){
+            cs+=`${x} ${H-y-i*lineH} Td\n(${MiniPDF._esc(lines[i])}) Tj\n`;
+            if(i<lines.length-1) cs+=`-${x} -${lineH} Td\n`;
+          }
+          cs+=`ET\n`;
+        }
+      }
+
+      const streamId=nextId++;
+      const pageId=nextId++;
+      builtPageIds.push(pageId);
+
+      const streamBytes=unescape(encodeURIComponent(cs)).split('').map(c=>c.charCodeAt(0));
+      // On encode le stream en latin1 direct
+      const enc=new TextEncoder();
+      writeObj(streamId,`<<\n/Length ${cs.length}\n>>\nstream\n${cs}endstream`);
+      writeObj(pageId,`<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 ${W} ${H}]\n/Contents ${streamId} 0 R\n/Resources <<\n/Font <<\n/F1 3 0 R\n/F2 4 0 R\n>>\n>>\n>>`);
+    }
+
+    // Pages dict
+    xref[2]=pdf.length;
+    pdf+=`2 0 obj\n<<\n/Type /Pages\n/Kids [${builtPageIds.map(i=>`${i} 0 R`).join(' ')}]\n/Count ${builtPageIds.length}\n>>\nendobj\n`;
+
+    // Catalog
+    xref[1]=pdf.length;
+    pdf+=`1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n`;
+
+    // xref table
+    const xrefPos=pdf.length;
+    const allIds=[1,2,3,4,...builtPageIds.flatMap((_,i)=>[nextId-builtPageIds.length*2+i*2-builtPageIds.length*2,_])];
+    // Recalcul propre des xref
+    const sortedIds=Object.keys(xref).map(Number).sort((a,b)=>a-b);
+    const maxId=Math.max(...sortedIds);
+    pdf+=`xref\n0 ${maxId+1}\n0000000000 65535 f \n`;
+    for(let i=1;i<=maxId;i++){
+      if(xref[i]!==undefined) pdf+=String(xref[i]).padStart(10,'0')+' 00000 n \n';
+      else pdf+=`0000000000 65535 f \n`;
+    }
+    pdf+=`trailer\n<<\n/Size ${maxId+1}\n/Root 1 0 R\n>>\nstartxref\n${xrefPos}\n%%EOF`;
+
+    return pdf;
+  }
+};
+
+// Helpers pour dessiner facilement
+function makePage(){ return {cmds:[]}; }
+
+function pRect(pg,x,y,w,h,r,g,b){ pg.cmds.push({type:'rect',x,y,w,h,r,g,b,stroke:false}); }
+function pRectS(pg,x,y,w,h,r,g,b){ pg.cmds.push({type:'rect',x,y,w,h,r,g,b,stroke:true}); }
+function pLine(pg,x1,y1,x2,y2,r,g,b,lw=0.5){ pg.cmds.push({type:'line',x1,y1,x2,y2,r,g,b,lw}); }
+function pText(pg,x,y,text,size,bold,r,g,b,align='left'){ pg.cmds.push({type:'text',x,y,text:String(text),size,bold,r,g,b,align}); }
+
+// Texte avec retour à la ligne manuel (wrap simple)
+function pWrap(pg,x,y,text,size,bold,r,g,b,maxW,lineH){
+  text=String(text||'');
+  const charW=size*0.52*(bold?0.58:0.52);
+  const maxChars=Math.floor(maxW/charW);
+  const words=text.split(' ');
+  let lines=[],cur='';
+  for(const w of words){
+    if((cur+' '+w).trim().length>maxChars){ lines.push(cur.trim()); cur=w; }
+    else cur=(cur+' '+w).trim();
+  }
+  if(cur) lines.push(cur);
+  let cy=y;
+  for(const l of lines){ pText(pg,x,cy,l,size,bold,r,g,b); cy+=lineH; }
+  return cy;
+}
+
+// Tableau simple
+function pTable(pg,doc,x,y,cols,colWidths,rows,opts={}){
+  const{headerBg=[249,115,22],headerColor=[255,255,255],rowH=22,fontSize=8.5,altBg=[248,248,248]}=opts;
+  const W=doc.W; const H=doc.H;
+  let cy=y;
+
+  function drawRow(rowData,isBold,bg){
+    const totalW=colWidths.reduce((a,b)=>a+b,0);
+    if(bg) pRect(pg,x,cy,totalW,rowH,...bg);
+    let cx=x;
+    for(let i=0;i<cols.length;i++){
+      const cw=colWidths[i];
+      const align=opts.aligns&&opts.aligns[i]||'left';
+      const tx=align==='right'?cx+cw-4:(align==='center'?cx+cw/2:cx+4);
+      pText(pg,tx,cy+14,String(rowData[i]||''),fontSize,isBold,...(isBold?headerColor:[50,50,50]),align);
+      cx+=cw;
+    }
+    // Bordure basse
+    pLine(pg,x,cy+rowH,x+totalW,cy+rowH,200,200,200);
+    cy+=rowH;
+
+    // Nouvelle page si besoin
+    if(cy>H-60){
+      doc.pages.push(pg);
+      pg=makePage();
+      cy=40;
+      // ré-dessiner l'entête
+      const totalW2=colWidths.reduce((a,b)=>a+b,0);
+      pRect(pg,x,cy,totalW2,rowH,...headerBg);
+      let cx2=x;
+      for(let i=0;i<cols.length;i++){
+        pText(pg,cx2+4,cy+14,cols[i],fontSize,true,...headerColor);
+        cx2+=colWidths[i];
+      }
+      pLine(pg,x,cy+rowH,x+totalW2,cy+rowH,200,200,200);
+      cy+=rowH;
+    }
+    return {pg,cy};
+  }
+
+  // Header
+  let r=drawRow(cols,true,headerBg);
+  pg=r.pg; cy=r.cy;
+  // Rows
+  for(let i=0;i<rows.length;i++){
+    r=drawRow(rows[i],false,i%2===1?altBg:null);
+    pg=r.pg; cy=r.cy;
+  }
+  return {pg,finalY:cy};
+}
+
+// ══════════════════════════════════════════════════
+// APP LOGIC
+// ══════════════════════════════════════════════════
+let livraisons=JSON.parse(localStorage.getItem('livraisons_carbu')||'[]');
+let prixParLitre=parseFloat(localStorage.getItem('prix_par_litre')||'0');
+const now=new Date();
+const todayISO=now.toISOString().split('T')[0];
+
+document.getElementById('f-date').value=todayISO;
+document.getElementById('top-date').innerHTML=now.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'short'}).replace(/^./,s=>s.toUpperCase());
+document.getElementById('bilan-month').value=now.getMonth();
+document.getElementById('bilan-year').value=now.getFullYear();
+document.getElementById('wrap-saisie').style.cssText='background:var(--accent);box-shadow:0 4px 16px rgba(249,115,22,0.35);';
+updatePrixBadge();
+updateStats(); renderTodayList();
+
+// ── GESTION PRIX ──
+function ouvrirPrix(){
+  const m=document.getElementById('modal-prix');
+  m.style.display='flex';
+  document.getElementById('input-prix').value=prixParLitre||'';
+  document.getElementById('input-prix').focus();
+}
+function fermerPrix(){
+  document.getElementById('modal-prix').style.display='none';
+}
+function sauverPrix(){
+  const v=parseFloat(document.getElementById('input-prix').value);
+  if(!v||v<=0){toast('⚠️ Entrez un prix valide');return;}
+  prixParLitre=v;
+  localStorage.setItem('prix_par_litre',v);
+  fermerPrix();
+  updatePrixBadge();
+  updateStats();
+  renderTodayList();
+  calcMontant();
+  toast('✅ Prix enregistré : '+v.toLocaleString('fr-FR')+' FCFA/L');
+}
+function updatePrixBadge(){
+  const el=document.getElementById('prix-badge-txt');
+  if(prixParLitre>0) el.textContent=prixParLitre.toLocaleString('fr-FR')+' FCFA/L';
+  else el.textContent='Fixer prix';
+}
+function calcMontant(){
+  const qty=parseFloat(document.getElementById('f-quantite').value)||0;
+  const preview=document.getElementById('montant-preview');
+  if(qty>0 && prixParLitre>0){
+    const montant=qty*prixParLitre;
+    document.getElementById('montant-val').innerHTML=montant.toLocaleString('fr-FR')+' <small>FCFA</small>';
+    document.getElementById('prix-unit-display').textContent=prixParLitre.toLocaleString('fr-FR')+' FCFA/L';
+    preview.style.display='flex';
+  } else {
+    preview.style.display='none';
+  }
+}
+// Fermer modal si clic dehors
+document.getElementById('modal-prix').addEventListener('click',function(e){
+  if(e.target===this) fermerPrix();
+});
+
+function switchScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>{b.classList.remove('active');b.querySelector('.nav-icon-wrap').style.cssText='';});
+  document.getElementById('screen-'+name).classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+  document.getElementById('wrap-'+name).style.cssText='background:var(--accent);box-shadow:0 4px 16px rgba(249,115,22,0.35);';
+  document.querySelector('.main-content').scrollTop=0;
+  if(name==='historique') renderHistorique();
+  if(name==='bilan'){document.getElementById('bilan-summary').style.display='none';document.getElementById('bilan-empty').style.display='none';}
+}
+
+function save(){
+  localStorage.setItem('livraisons_carbu',JSON.stringify(livraisons));
+  updateStats(); renderTodayList();
+}
+
+function updateStats(){
+  const m=now.getMonth(),y=now.getFullYear();
+  const monthly=livraisons.filter(l=>{const d=new Date(l.date);return d.getMonth()===m&&d.getFullYear()===y;});
+  const zones=[...new Set(livraisons.map(l=>l.zone))].filter(Boolean);
+  document.getElementById('stat-total').textContent=livraisons.length;
+  const qty=monthly.reduce((s,l)=>s+(parseFloat(l.quantite)||0),0);
+  document.getElementById('stat-qty').innerHTML=qty>=1000?(qty/1000).toFixed(1)+'<small>kL</small>':qty+'<small>L</small>';
+  document.getElementById('stat-zones').textContent=zones.length;
+  // Montant mensuel
+  const montantCard=document.getElementById('stat-montant-card');
+  if(prixParLitre>0){
+    const totalMontant=Math.round(qty*prixParLitre);
+    document.getElementById('stat-montant').innerHTML=totalMontant.toLocaleString('fr-FR')+' <small>FCFA</small>';
+    montantCard.style.display='block';
+  } else { montantCard.style.display='none'; }
+}
+
+function addLivraison(){
+  const date=document.getElementById('f-date').value;
+  const zone=document.getElementById('f-zone').value.trim();
+  const salle=document.getElementById('f-salle').value.trim();
+  const quantite=document.getElementById('f-quantite').value;
+  const description=document.getElementById('f-description').value.trim();
+  if(!date||!zone||!salle||!quantite){toast('⚠️ Champs obligatoires manquants');return;}
+  const qtyNum=parseFloat(quantite);
+  const montant=prixParLitre>0?Math.round(qtyNum*prixParLitre):null;
+  livraisons.push({id:Date.now(),date,zone,salle,quantite:qtyNum,montant,prixUnitaire:prixParLitre||null,description});
+  save();
+  toast('✅ Livraison enregistrée !');
+  ['f-zone','f-salle','f-quantite','f-description'].forEach(id=>document.getElementById(id).value='');
+  calcMontant();
+  document.querySelector('.main-content').scrollTop=0;
+}
+
+function resetForm(){
+  document.getElementById('f-date').value=todayISO;
+  ['f-zone','f-salle','f-quantite','f-description'].forEach(id=>document.getElementById(id).value='');
+  calcMontant();
+}
+
+function deleteLivraison(id){
+  if(!confirm('Supprimer cette livraison ?'))return;
+  livraisons=livraisons.filter(l=>l.id!==id);
+  save(); renderHistorique();
+}
+
+function renderCard(l,showDelete=true){
+  return`<div class="delivery-card">
+    <div class="card-top">
+      <div><div class="card-zone">${esc(l.zone)}</div><div class="card-date">${formatDate(l.date)}</div></div>
+      <div class="card-right">
+        <div class="card-qty">${l.quantite.toLocaleString('fr-FR')} L</div>
+        ${showDelete?`<button class="delete-btn" onclick="deleteLivraison(${l.id})">🗑</button>`:''}
+      </div>
+    </div>
+    <div class="card-bottom">
+      <span class="card-salle">${esc(l.salle)}</span>
+      ${l.description?`<span class="card-desc">${esc(l.description)}</span>`:''}
+    </div>
+  </div>`;
+}
+
+function renderTodayList(){
+  const today=livraisons.filter(l=>l.date===todayISO).reverse();
+  document.getElementById('today-list').innerHTML=today.length?today.map(l=>renderCard(l)).join(''):
+    '<div class="empty"><div class="empty-icon">📦</div><p>Aucune livraison aujourd\'hui</p></div>';
+}
+
+function renderHistorique(){
+  const df=document.getElementById('filter-date').value;
+  const zf=document.getElementById('filter-zone').value.toLowerCase();
+  let data=[...livraisons].sort((a,b)=>b.date.localeCompare(a.date));
+  if(df) data=data.filter(l=>l.date===df);
+  if(zf) data=data.filter(l=>l.zone.toLowerCase().includes(zf)||l.salle.toLowerCase().includes(zf));
+  document.getElementById('hist-count').textContent=data.length?`${data.length} livraison(s)`:'';
+  document.getElementById('hist-list').innerHTML=data.length?data.map(l=>renderCard(l)).join(''):
+    '<div class="empty"><div class="empty-icon">🗂️</div><p>Aucune livraison trouvée</p></div>';
+}
+
+function renderBilan(){
+  const m=parseInt(document.getElementById('bilan-month').value);
+  const y=parseInt(document.getElementById('bilan-year').value);
+  const MOIS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const data=livraisons.filter(l=>{const d=new Date(l.date);return d.getMonth()===m&&d.getFullYear()===y;}).sort((a,b)=>a.date.localeCompare(b.date));
+  const sum=document.getElementById('bilan-summary');
+  const emp=document.getElementById('bilan-empty');
+  if(!data.length){sum.style.display='none';emp.style.display='block';return;}
+  emp.style.display='none';sum.style.display='block';
+  const totalQty=data.reduce((s,l)=>s+l.quantite,0);
+  const zones=[...new Set(data.map(l=>l.zone))].length;
+  const totalMontant=prixParLitre>0?Math.round(totalQty*prixParLitre):null;
+  document.getElementById('bilan-totaux').innerHTML=`
+    <div><div class="s-label">Livraisons</div><div class="s-val">${data.length}</div></div>
+    <div><div class="s-label">Volume</div><div class="s-val orange">${totalQty.toLocaleString('fr-FR')}L</div></div>
+    <div><div class="s-label">Zones</div><div class="s-val">${zones}</div></div>
+    ${totalMontant?`<div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:10px;"><div class="s-label">💰 Montant total</div><div class="s-val" style="color:var(--gold);font-size:1.5rem;">${totalMontant.toLocaleString('fr-FR')} <span style="font-size:0.8rem;font-weight:400;color:var(--muted);">FCFA</span></div></div>`:''}`;
+  document.getElementById('bilan-list-title').textContent=`${MOIS[m]} ${y} — Détail`;
+  document.getElementById('bilan-list').innerHTML=data.map(l=>renderCard(l,false)).join('');
+}
+
+function clearFilters(){
+  document.getElementById('filter-date').value='';
+  document.getElementById('filter-zone').value='';
+  renderHistorique();
+}
+
+function formatDate(d){const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`;}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ══════════════════════════════════════════════════
+// PDF JOURNALIER
+// ══════════════════════════════════════════════════
+function exportDayPDF(){
+  const today=livraisons.filter(l=>l.date===todayISO);
+  if(!today.length){toast('⚠️ Aucune livraison aujourd\'hui');return;}
+  toast('⏳ Génération du PDF...');
+
+  const doc=MiniPDF.create('Rapport journalier');
+  const W=doc.W;
+  const pg=makePage();
+
+  // Bandeau orange
+  pRect(pg,0,0,W,45,249,115,22);
+  pText(pg,W/2,18,'RAPPORT JOURNALIER — LIVRAISON DE CARBURANT',13,true,255,255,255,'center');
+  pText(pg,W/2,33,'GestCarbu',9,false,255,230,200,'center');
+
+  // Infos
+  pText(pg,40,65,'Date :',10,true,80,80,80);
+  pText(pg,85,65,formatDate(todayISO),10,false,80,80,80);
+  pText(pg,W-40,65,'Généré le : '+new Date().toLocaleDateString('fr-FR'),8,false,150,150,150,'right');
+
+  // Ligne séparatrice
+  pLine(pg,40,75,W-40,75,200,200,200);
+
+  // Tableau
+  const hasPrix=prixParLitre>0;
+  const cols=hasPrix?['N°','Zone','Salle / Bâtiment','Qté (L)','Montant','Description']:['N°','Zone','Salle / Bâtiment','Qté (L)','Description'];
+  const colW=hasPrix?[22,95,95,45,60,198]:[25,110,110,55,255-40];
+  const rows=today.map((l,i)=>hasPrix?[i+1,l.zone,l.salle,l.quantite.toLocaleString('fr-FR')+' L',(Math.round(l.quantite*prixParLitre)).toLocaleString('fr-FR')+' F',l.description||'—']:[i+1,l.zone,l.salle,l.quantite.toLocaleString('fr-FR')+' L',l.description||'—']);
+  const {pg:pg2,finalY}=pTable(pg,doc,40,85,cols,colW,rows,{rowH:24,fontSize:8});
+
+  // Total
+  const total=today.reduce((s,l)=>s+l.quantite,0);
+  const totalMontantJ=hasPrix?Math.round(total*prixParLitre):null;
+  const boxH=hasPrix?44:28;
+  pRect(pg2,40,finalY+8,W-80,boxH,255,247,237);
+  pText(pg2,W/2,finalY+22,`Total livraisons : ${today.length}   |   Quantité : ${total.toLocaleString('fr-FR')} L`,10,true,249,115,22,'center');
+  if(hasPrix) pText(pg2,W/2,finalY+38,`Montant total : ${totalMontantJ.toLocaleString('fr-FR')} FCFA  (@ ${prixParLitre.toLocaleString('fr-FR')} FCFA/L)`,9,true,180,120,0,'center');
+
+  // Footer
+  pText(pg2,W/2,820,'Document généré par GestCarbu — Application hors ligne',7,false,180,180,180,'center');
+
+  doc.pages.push(pg2);
+  MiniPDF.download(doc,`Livraisons_${todayISO}.pdf`);
+  setTimeout(()=>toast('📄 PDF journalier téléchargé !'),500);
+}
+
+// ══════════════════════════════════════════════════
+// PDF BILAN MENSUEL
+// ══════════════════════════════════════════════════
+function exportBilanPDF(){
+  const m=parseInt(document.getElementById('bilan-month').value);
+  const y=parseInt(document.getElementById('bilan-year').value);
+  const MOIS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const data=livraisons.filter(l=>{const d=new Date(l.date);return d.getMonth()===m&&d.getFullYear()===y;}).sort((a,b)=>a.date.localeCompare(b.date));
+  if(!data.length){toast('⚠️ Aucune livraison ce mois');return;}
+  toast('⏳ Génération du PDF...');
+
+  const doc=MiniPDF.create('Bilan mensuel');
+  const W=doc.W, H=doc.H;
+  const pg=makePage();
+
+  // Bandeau sombre + barre orange
+  pRect(pg,0,0,W,48,20,20,20);
+  pRect(pg,0,45,W,4,249,115,22);
+  pText(pg,W/2,18,'BILAN MENSUEL — LIVRAISONS DE CARBURANT',14,true,255,255,255,'center');
+  pText(pg,W/2,34,`Période : ${MOIS[m]} ${y}  •  GestCarbu`,10,false,200,200,200,'center');
+
+  pText(pg,40,62,'Généré le : '+new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),8,false,140,140,140);
+
+  // Tableau principal
+  const hasPrixB=prixParLitre>0;
+  const cols=hasPrixB?['N°','Date','Zone','Salle','Qté (L)','Montant','Description']:['N°','Date','Zone','Salle','Qté (L)','Description'];
+  const colW=hasPrixB?[20,45,90,90,40,58,W-80-343]:[25,55,110,110,55,W-80-355];
+  const rows=data.map((l,i)=>hasPrixB?[i+1,formatDate(l.date),l.zone,l.salle,l.quantite.toLocaleString('fr-FR')+' L',Math.round(l.quantite*prixParLitre).toLocaleString('fr-FR')+' F',l.description||'—']:[i+1,formatDate(l.date),l.zone,l.salle,l.quantite.toLocaleString('fr-FR')+' L',l.description||'—']);
+  const {pg:pg2,finalY}=pTable(pg,doc,40,75,cols,colW,rows,{
+    headerBg:[20,20,20],headerColor:[249,115,22],rowH:24,fontSize:8
+  });
+
+  // Récap
+  const totalQty=data.reduce((s,l)=>s+l.quantite,0);
+  const zones=[...new Set(data.map(l=>l.zone))];
+  const ry=finalY+12;
+  pRect(pg2,40,ry,W-80,prixParLitre>0?48:32,255,247,237);
+  pText(pg2,44,ry+12,'RÉCAPITULATIF',9,true,249,115,22);
+  pText(pg2,44,ry+26,`Livraisons : ${data.length}   |   Volume : ${totalQty.toLocaleString('fr-FR')} L   |   Zones : ${zones.length}`,9,false,60,60,60);
+  if(prixParLitre>0){
+    const tmB=Math.round(totalQty*prixParLitre);
+    pText(pg2,44,ry+40,`Montant total : ${tmB.toLocaleString('fr-FR')} FCFA  (@ ${prixParLitre.toLocaleString('fr-FR')} FCFA/L)`,9,true,180,120,0);
+  }
+
+  // Détail par zone
+  let zy=ry+52;
+  pText(pg2,40,zy,'Détail par zone :',9,true,80,80,80);
+  zy+=8;
+  const byZone=zones.map(z=>[z,data.filter(l=>l.zone===z).length,data.filter(l=>l.zone===z).reduce((s,l)=>s+l.quantite,0).toLocaleString('fr-FR')+' L']);
+  const {pg:pg3,finalY:zy2}=pTable(pg2,doc,40,zy,['Zone','Nb livraisons','Quantité'],[180,90,90],byZone,{
+    headerBg:[60,60,60],headerColor:[255,255,255],rowH:22,fontSize:8.5
+  });
+
+  // Signatures
+  let sigY=zy2+30;
+  if(sigY+70>H-20){
+    doc.pages.push(pg3);
+    const pg4=makePage();
+    doc.pages.push(pg4);
+    // on dessine les sigs sur la dernière page
+    const pgSig=doc.pages[doc.pages.length-1];
+    sigY=40;
+    drawSignatures(pgSig,W,sigY,y);
+  } else {
+    drawSignatures(pg3,W,sigY,y);
+    doc.pages.push(pg3);
+  }
+
+  MiniPDF.download(doc,`Bilan_Carburant_${MOIS[m]}_${y}.pdf`);
+  setTimeout(()=>toast('📊 Bilan PDF téléchargé !'),500);
+}
+
+function drawSignatures(pg,W,sigY,year){
+  pText(pg,40,sigY-8,'VALIDATION DU DOCUMENT',9,true,80,80,80);
+  // Boîte gauche
+  pRectS(pg,40,sigY,115,60,200,200,200);
+  pText(pg,97,sigY+13,'SIGNATURE DU RESPONSABLE',7,true,100,100,100,'center');
+  pLine(pg,46,sigY+48,148,sigY+48,180,180,180);
+  pText(pg,97,sigY+56,'Nom & signature',7,false,160,160,160,'center');
+  // Boîte droite
+  pRectS(pg,W-155,sigY,115,60,200,200,200);
+  const cx=W-155+57;
+  pText(pg,cx,sigY+13,'DATE & CACHET OFFICIEL',7,true,100,100,100,'center');
+  pLine(pg,W-149,sigY+48,W-46,sigY+48,180,180,180);
+  pText(pg,cx,sigY+56,'Date et cachet',7,false,160,160,160,'center');
+  // Footer
+  pText(pg,W/2,820,`Document confidentiel — GestCarbu © ${year}`,7,false,180,180,180,'center');
+}
+</script>
+</body>
+</html>
